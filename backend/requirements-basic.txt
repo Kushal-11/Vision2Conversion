@@ -1,0 +1,14 @@
+# Basic FastAPI setup for testing
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic-settings==2.0.3
+python-dotenv==1.0.0# T
+esting
+pytest==7.4.3
+pytest-asyncio==0.21.1# Database
+
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+alembic==1.12.1# HTTP
+ Client for testing
+httpx==0.25.2
