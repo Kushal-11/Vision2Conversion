@@ -43,6 +43,7 @@ class CacheService:
     def set(self, key: str, value: Any, ttl: int = 3600) -> bool:
         """Set a value in cache with TTL in seconds"""
         if not self.redis_client:
+            logger.warning(f"Redis not available, skipping cache set for key: {key}")
             return False
         
         try:

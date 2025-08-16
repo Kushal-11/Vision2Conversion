@@ -2,8 +2,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
+from app.core.deps import get_current_active_user
 from app.services.recommendation_service import recommendation_service
 from app.services.user_data_service import user_data_service
+from app.models.database import UserModel
 from app.models.schemas import Recommendation, ProductCategory
 import logging
 
@@ -16,9 +18,16 @@ router = APIRouter()
 async def get_user_recommendations(
     user_id: str,
     limit: int = Query(10, ge=1, le=50, description="Number of recommendations to return"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Get personalized recommendations for a user"""
+    """Get personalized recommendations for a user (users can only access their own recommendations)"""
+    # Users can only access their own recommendations unless they're a superuser
+    if user_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this user's recommendations"
+        )
     try:
         # Verify user exists
         user = user_data_service.get_user_by_id(db, user_id)
@@ -45,9 +54,16 @@ async def get_category_recommendations(
     user_id: str,
     category: ProductCategory,
     limit: int = Query(10, ge=1, le=50, description="Number of recommendations to return"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Get recommendations within a specific category for a user"""
+    """Get recommendations within a specific category for a user (users can only access their own recommendations)"""
+    # Users can only access their own recommendations unless they're a superuser
+    if user_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this user's recommendations"
+        )
     try:
         # Verify user exists
         user = user_data_service.get_user_by_id(db, user_id)

@@ -24,16 +24,14 @@ class Settings(BaseSettings):
     NEO4J_PASSWORD: str = "password"
     
     # Redis Configuration
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6380
+    REDIS_HOST: str = "redis-14206.c13.us-east-1-3.ec2.redns.redis-cloud.com"
+    REDIS_PORT: int = 14206
     REDIS_DB: int = 0
-    REDIS_PASSWORD: Optional[str] = None
+    REDIS_PASSWORD: str = "ZFVhHGK0IGn0NQyx7sNfWs1UtKLsdWSv"
     
     @property
     def REDIS_URL(self) -> str:
-        if self.REDIS_PASSWORD:
-            return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
-        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+        return f"redis://default:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
     
     # Security
     SECRET_KEY: str = "your-secret-key-change-in-production"
@@ -42,6 +40,10 @@ class Settings(BaseSettings):
     
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 60
+    
+    # Development Settings
+    DEBUG: bool = True
+    LOG_LEVEL: str = "INFO"
     
     class Config:
         env_file = ".env"

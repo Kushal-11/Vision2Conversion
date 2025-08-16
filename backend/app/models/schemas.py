@@ -31,6 +31,7 @@ class ProductCategory(str, Enum):
 
 class UserBase(BaseModel):
     email: str = Field(..., description="User email address")
+    full_name: Optional[str] = Field(None, max_length=100, description="User's full name")
     profile_data: Dict[str, Any] = Field(default_factory=dict, description="Additional user profile information")
     
     @validator('email')
@@ -41,16 +42,71 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    pass
+    password: str = Field(..., min_length=8, description="User password (min 8 characters)")
+    
+    @validator('password')
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        if not any(c.isdigit() for c in v):
+            raise ValueError('Password must contain at least one digit')
+        if not any(c.isalpha() for c in v):
+            raise ValueError('Password must contain at least one letter')
+        return v
 
 
-class User(UserBase):
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = Field(None, max_length=100)
+    profile_data: Optional[Dict[str, Any]] = None
+
+
+class UserResponse(UserBase):
     id: str = Field(..., description="Unique user identifier")
+    is_active: bool = Field(True, description="Whether user account is active")
+    is_superuser: bool = Field(False, description="Whether user has admin privileges")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     
     class Config:
         from_attributes = True
+
+
+class User(UserResponse):  # For backward compatibility
+    pass
+
+
+class UserLogin(BaseModel):
+    email: str = Field(..., description="User email address")
+    password: str = Field(..., description="User password")
+
+
+class Token(BaseModel):
+    access_token: str = Field(..., description="JWT access token")
+    token_type: str = Field("bearer", description="Token type")
+    expires_in: int = Field(..., description="Token expiration time in seconds")
+
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+
+
+class PasswordResetRequest(BaseModel):
+    email: str = Field(..., description="Email address for password reset")
+
+
+class PasswordReset(BaseModel):
+    token: str = Field(..., description="Password reset token")
+    new_password: str = Field(..., min_length=8, description="New password")
+    
+    @validator('new_password')
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        if not any(c.isdigit() for c in v):
+            raise ValueError('Password must contain at least one digit')
+        if not any(c.isalpha() for c in v):
+            raise ValueError('Password must contain at least one letter')
+        return v
 
 
 class ProductBase(BaseModel):
